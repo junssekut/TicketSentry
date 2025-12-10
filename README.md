@@ -4,7 +4,8 @@
 
 ## 🚀 Features
 
-*   **Headless-Ready Architecture**: Designed for stability and performance.
+*   **Headless Mode**: Run silently in the background or watch the browser in action (configurable via `.env`).
+*   **Visual Notifications**: "Always-on-top" popup alerts when a link is detected.
 *   **Smart Authentication**: Uses your local Chrome Profile to authenticate (no credentials stored in code).
 *   **Web Client Optimization**: Automatically transforms desktop links to lightweight Web Client URLs.
 *   **Auto-Pilot**: Handles "Join Audio" and other common entry modals.
@@ -15,8 +16,9 @@
 
 Detailed documentation is available in the `/docs` directory:
 
-*   [**Installation Guide**](docs/installation.md): Setup instructions and dependencies.
-*   [**Configuration Guide**](docs/configuration.md): Setting up Chrome profiles and Sentry.
+*   [**Configuration Guide**](docs/configuration.md): Setting up Chrome profiles, Sentry, and Headless mode.
+*   [**Usage Guide**](docs/usage.md): How to run and operate the tool.
+*   [**Versioning Guide**](docs/versioning.md): Semantic versioning and release process.e profiles and Sentry.
 *   [**Usage Guide**](docs/usage.md): How to run and operate the tool.
 
 ## ⚡️ Quick Start
@@ -40,11 +42,11 @@ Detailed documentation is available in the `/docs` directory:
 ## 📂 Project Structure
 
 ```
-TicketSentry/
-├── run.py                  # CLI Entry Point
 ├── src/
 │   ├── config.py           # Configuration
 │   ├── core/               # Miner Logic & Driver Factory
+│   ├── services/           # Sentry, Notifications, & File I/O
+│   └── utils/              # Helpersogic & Driver Factory
 │   ├── services/           # Sentry & File I/O
 │   └── utils/              # Helpers
 ├── loot/                   # Collected links output

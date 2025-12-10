@@ -1,106 +1,157 @@
 """
-GUI Popup Notification Strategy.
+GUI Popup Notification Strategy using PyQt6 with Plyer fallback.
 """
-import tkinter as tk
-from tkinter import ttk
+import sys
 import webbrowser
 import multiprocessing
-import pyperclip
 from src.services.notifications.base import NotificationStrategy
 from src.services.sentry_service import SentryService
 
-def _launch_gui_process(url: str):
+# Try importing PyQt6
+try:
+    from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
+    from PyQt6.QtCore import Qt, QTimer
+    from PyQt6.QtGui import QFont, QColor, QPalette
+    PYQT_AVAILABLE = True
+except ImportError:
+    PYQT_AVAILABLE = False
+
+# Try importing Plyer
+try:
+    from plyer import notification
+    PLYER_AVAILABLE = True
+except ImportError:
+    PLYER_AVAILABLE = False
+
+def _launch_pyqt_gui(url: str):
     """
-    Internal function to run the GUI in a separate process.
+    Internal function to run the GUI in a separate process using PyQt6.
     """
-    root = tk.Tk()
-    root.title("SAT-Miner: Link Detected")
+    app = QApplication(sys.argv)
     
-    # Window Configuration
-    window_width = 500
-    window_height = 220
-    
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    center_x = int(screen_width/2 - window_width/2)
-    center_y = int(screen_height/2 - window_height/2)
-    
-    root.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
-    root.resizable(False, False)
+    # Create Main Window
+    window = QWidget()
+    window.setWindowTitle("SAT-Miner: Link Detected")
+    window.setFixedSize(500, 220)
     
     # Always on Top & Focus
-    root.attributes('-topmost', True)
-    root.lift()
-    root.focus_force()
+    window.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.FramelessWindowHint)
     
-    # Styling
-    bg_color = "#1e1e1e"
-    accent_color = "#3b8ed0"
+    # Dark Theme Styling
+    palette = window.palette()
+    palette.setColor(QPalette.ColorRole.Window, QColor("#1e1e1e"))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor("#ffffff"))
+    window.setPalette(palette)
     
-    root.configure(bg=bg_color)
-    
-    # Main Frame
-    main_frame = tk.Frame(root, bg=bg_color, padx=20, pady=20)
-    main_frame.pack(fill=tk.BOTH, expand=True)
+    # Layout
+    layout = QVBoxLayout()
+    layout.setContentsMargins(20, 20, 20, 20)
     
     # Header
-    tk.Label(
-        main_frame, 
-        text="🚨 Link Detected!", 
-        font=("Segoe UI", 16, "bold"),
-        bg=bg_color, 
-        fg="#ff4444"
-    ).pack(pady=(0, 10))
+    header = QLabel("🚨 Link Detected!")
+    header.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
+    header.setStyleSheet("color: #ff4444;")
+    header.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    layout.addWidget(header)
     
     # URL Display
     display_url = url if len(url) < 50 else url[:47] + "..."
-    tk.Label(
-        main_frame, 
-        text=display_url, 
-        font=("Consolas", 11),
-        bg="#2d2d2d", 
-        fg="#00ff00",
-        padx=10,
-        pady=5,
-        relief="flat"
-    ).pack(fill=tk.X, pady=10)
+    lbl_url = QLabel(display_url)
+    lbl_url.setFont(QFont("Consolas", 11))
+    lbl_url.setStyleSheet("background-color: #2d2d2d; color: #00ff00; padding: 10px; border-radius: 5px;")
+    lbl_url.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    layout.addWidget(lbl_url)
     
-    # Buttons
-    btn_frame = tk.Frame(main_frame, bg=bg_color)
-    btn_frame.pack(pady=15)
+    # Buttons Layout
+    btn_layout = QHBoxLayout()
+    btn_layout.setSpacing(10)
     
-    def copy_link():
-        pyperclip.copy(url)
-        btn_copy.config(text="Copied!", bg="#28a745")
-        root.after(2000, lambda: btn_copy.config(text="Copy to Clipboard", bg=accent_color))
-
-    def open_browser():
+    # Button Styles
+    btn_style = """
+        QPushButton {
+            background-color: #3b8ed0;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        QPushButton:hover { background-color: #347ab0; }
+    """
+    
+    # Copy Button
+    btn_copy = QPushButton("Copy to Clipboard")
+    btn_copy.setStyleSheet(btn_style)
+    def copy_action():
+        clipboard = QApplication.clipboard()
+        clipboard.setText(url)
+        btn_copy.setText("Copied!")
+        btn_copy.setStyleSheet("background-color: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold;")
+        QTimer.singleShot(2000, lambda: btn_copy.setText("Copy to Clipboard"))
+        QTimer.singleShot(2000, lambda: btn_copy.setStyleSheet(btn_style))
+    btn_copy.clicked.connect(copy_action)
+    btn_layout.addWidget(btn_copy)
+    
+    # Open Button
+    btn_open = QPushButton("Open Link")
+    btn_open.setStyleSheet(btn_style.replace("#3b8ed0", "#555555"))
+    def open_action():
         webbrowser.open(url)
-        root.destroy()
-
-    def create_btn(parent, text, command, bg):
-        return tk.Button(
-            parent, text=text, command=command, bg=bg, fg="white",
-            font=("Segoe UI", 10, "bold"), relief="flat", padx=15, pady=5, cursor="hand2"
-        )
-
-    btn_copy = create_btn(btn_frame, "Copy to Clipboard", copy_link, accent_color)
-    btn_copy.pack(side=tk.LEFT, padx=5)
+        window.close()
+    btn_open.clicked.connect(open_action)
+    btn_layout.addWidget(btn_open)
     
-    create_btn(btn_frame, "Open Link", open_browser, "#555555").pack(side=tk.LEFT, padx=5)
-    create_btn(btn_frame, "Dismiss", root.destroy, "#d9534f").pack(side=tk.LEFT, padx=5)
+    # Dismiss Button
+    btn_close = QPushButton("Dismiss")
+    btn_close.setStyleSheet(btn_style.replace("#3b8ed0", "#d9534f"))
+    btn_close.clicked.connect(window.close)
+    btn_layout.addWidget(btn_close)
+    
+    layout.addLayout(btn_layout)
+    window.setLayout(layout)
+    
+    # Center on Screen
+    screen_geometry = app.primaryScreen().geometry()
+    x = (screen_geometry.width() - window.width()) // 2
+    y = (screen_geometry.height() - window.height()) // 2
+    window.move(x, y)
+    
+    window.show()
+    sys.exit(app.exec())
 
-    root.mainloop()
+def _launch_plyer_notification(url: str):
+    """
+    Internal function to send a native notification using Plyer.
+    """
+    try:
+        notification.notify(
+            title='SAT-Miner: Link Detected',
+            message=f'Found: {url}',
+            app_name='SAT-Miner',
+            timeout=10
+        )
+    except Exception as e:
+        print(f"[!] Plyer notification failed: {e}")
 
 class GuiNotification(NotificationStrategy):
     """
-    Spawns a visual alert window on top of other applications.
+    Spawns a visual alert window using PyQt6, with Plyer as fallback.
     """
     def send(self, message: str, **kwargs):
         try:
-            p = multiprocessing.Process(target=_launch_gui_process, args=(message,))
-            p.start()
+            if PYQT_AVAILABLE:
+                p = multiprocessing.Process(target=_launch_pyqt_gui, args=(message,))
+                p.start()
+            elif PLYER_AVAILABLE:
+                print("[*] PyQt6 not found. Falling back to Plyer notification.")
+                p = multiprocessing.Process(target=_launch_plyer_notification, args=(message,))
+                p.start()
+            else:
+                print("[!] Neither PyQt6 nor Plyer found. GUI notification skipped.")
+                print("    Install with: pip install PyQt6 plyer")
         except Exception as e:
-            print(f"[!] Failed to launch GUI notification: {e}")
+            print(f"[!] Failed to launch notification: {e}")
             SentryService.capture_exception(e)
-            print(f"[!] Failed to launch GUI notification: {e}")
+
+
+

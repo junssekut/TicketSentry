@@ -2,6 +2,7 @@
 Sentry integration service for error tracking and monitoring.
 """
 import sentry_sdk
+from sentry_sdk.integrations.mcp import MCPIntegration
 from src.config import config
 
 class SentryService:
@@ -20,7 +21,10 @@ class SentryService:
         sentry_sdk.init(
             dsn=config.SENTRY_DSN,
             traces_sample_rate=config.SENTRY_SAMPLE_RATE,
-            environment=config.SENTRY_ENV
+            environment=config.SENTRY_ENV,
+            integrations=[
+                MCPIntegration()
+            ]
         )
         cls._initialized = True
 

@@ -3,6 +3,7 @@ Service for managing discovered 'loot' (collected links).
 """
 import os
 from datetime import datetime
+from src.services.sentry_service import SentryService
 
 class LootManager:
     """
@@ -28,7 +29,6 @@ class LootManager:
         """
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         entry = f"[{timestamp}] {url}\n"
-        
         try:
             with open(self.filepath, "a", encoding="utf-8") as f:
                 f.write(entry)
@@ -36,4 +36,6 @@ class LootManager:
         except IOError as e:
             # We might want to log this or re-raise depending on severity
             print(f"[!] Failed to save link: {e}")
+            SentryService.capture_exception(e)
+            return FalseFailed to save link: {e}")
             return False

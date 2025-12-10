@@ -13,6 +13,7 @@ from src.config import config
 from src.core.driver_factory import DriverFactory
 from src.services.sentry_service import SentryService
 from src.services.loot_manager import LootManager
+from src.services.notifications.manager import NotificationManager
 from src.utils.url_transformer import UrlTransformer
 
 class SatMiner:
@@ -25,6 +26,7 @@ class SatMiner:
         self.target_url = UrlTransformer.to_web_client(target_url)
         self.driver = None
         self.loot_manager = LootManager()
+        self.notifier = NotificationManager()
         self.seen_links: Set[str] = set()
         self.is_running = False
 
@@ -88,8 +90,9 @@ class SatMiner:
             chat_btn.click()
             print("[✓] Opened Chat Panel")
             time.sleep(2)
-        except NoSuchElementException:
+        except NoSuchElementException as e:
             print("[!] Could not find Chat button (might already be open or UI changed)")
+            SentryService.capture_exception(e)
 
     def _start_listener_loop(self):
         """Main loop that scans for links."""
@@ -119,9 +122,10 @@ class SatMiner:
 
                 if self._is_target_link(href):
                     self._handle_found_link(href)
-                    
             except Exception as e:
                 # Stale element reference or other minor DOM issue
+                SentryService.capture_exception(e)
+                continueelement reference or other minor DOM issue
                 continue
 
     def _is_target_link(self, url: str) -> bool:
@@ -134,9 +138,12 @@ class SatMiner:
         
         # Save to file
         if self.loot_manager.save_link(url):
-            print(f"[✓] Saved to {self.loot_manager.filepath}")
-        
         # Report to Sentry
         SentryService.capture_message(f"Link Found: {url}", level="info")
+        
+        # Notify User (GUI, etc.)
+        self.notifier.notify_all(url)
+        
+        self.seen_links.add(url)ssage(f"Link Found: {url}", level="info")
         
         self.seen_links.add(url)

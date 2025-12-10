@@ -3,3 +3,4 @@ sentry-sdk>=1.39.0
 click>=8.1.7
 fake-useragent>=1.4.0
 python-dotenv>=1.0.0
+pyperclip>=1.8.2

@@ -18,16 +18,12 @@ class AppConfig:
     SENTRY_ENV: str = os.getenv("SENTRY_ENV", "production")
     SENTRY_SAMPLE_RATE: float = 1.0
 
-    # Chrome Configuration
-    # Default to macOS path, but allow override via env var
-    CHROME_USER_DATA_DIR: str = os.getenv(
-        "CHROME_USER_DATA_DIR", 
-        "/Users/arjunaandio/Library/Application Support/Google/Chrome"
-    )
-    CHROME_PROFILE_DIRECTORY: str = os.getenv("CHROME_PROFILE_DIRECTORY", "Default")
-    
     # Headless Mode
     HEADLESS: bool = os.getenv("HEADLESS", "false").lower() == "true"
+    
+    # Microsoft Authentication
+    MS_EMAIL: str = os.getenv("MS_EMAIL", "")
+    MS_PASSWORD: str = os.getenv("MS_PASSWORD", "")
 
     # Miner Configuration
     POLL_INTERVAL: int = 5

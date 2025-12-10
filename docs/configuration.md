@@ -10,23 +10,32 @@ The application is configured via a `.env` file in the project root.
     ```
 2.  Edit `.env` with your specific settings.
 
-## Chrome Profile Setup (Crucial)
+## Microsoft Authentication
 
-To bypass 2FA and SSO logins, this tool uses your existing Chrome session. You need to point the tool to your Chrome User Data directory.
+The tool now uses a fresh anonymous Chrome profile to avoid corruption issues. To access authenticated Zoom meetings, you need to provide your Microsoft credentials:
 
-### Finding Your Paths
+### Setting Up Credentials
 
-1.  Open Chrome.
-2.  Navigate to `chrome://version`.
-3.  Look for **Profile Path**.
-    *   Example: `/Users/username/Library/Application Support/Google/Chrome/Default`
-    *   **User Data Dir**: `/Users/username/Library/Application Support/Google/Chrome`
-    *   **Profile Directory**: `Default`
+1.  Open `.env` file
+2.  Add your Microsoft/Office365 credentials:
+    ```
+    MS_EMAIL=your.email@example.com
+    MS_PASSWORD=your_password_here
+    ```
 
-### Setting Variables in .env
+The tool will automatically:
+- Create a temporary Chrome profile
+- Navigate to the Zoom meeting
+- Detect Microsoft login page
+- Enter your credentials
+- Complete the authentication flow
 
-*   `CHROME_USER_DATA_DIR`: Path to the User Data folder.
-*   `CHROME_PROFILE_DIRECTORY`: Name of the profile folder (e.g., "Default", "Profile 1").
+### Manual Login Option
+
+If you prefer not to store credentials or have 2FA enabled:
+- Leave `MS_EMAIL` and `MS_PASSWORD` empty in `.env`
+- The tool will pause and prompt you to login manually
+- Press Enter after logging in to continue
 
 ## Sentry Integration (Optional)
 
@@ -43,4 +52,5 @@ You can also tune:
 
 *   `POLL_INTERVAL`: How often (in seconds) to scan the chat.
 *   `PAGE_LOAD_DELAY_MIN` / `MAX`: Random delay range for page loads.
+*   `HEADLESS`: Set to `true` to run browser in background (default: `false`).
 

@@ -32,9 +32,11 @@ class DriverFactory:
             # Anti-detection: Random user agent
             options.add_argument(f"user-agent={ua.random}")
             
-            # Chrome Profile Trick: Load existing session
-            options.add_argument(f"--user-data-dir={config.CHROME_USER_DATA_DIR}")
-            options.add_argument(f"--profile-directory={config.CHROME_PROFILE_DIRECTORY}")
+            # Use a temporary isolated profile to avoid corruption issues
+            # This creates a fresh profile each time
+            import tempfile
+            temp_profile = tempfile.mkdtemp(prefix="chrome_profile_")
+            options.add_argument(f"--user-data-dir={temp_profile}")
 
             # Headless Mode
             if config.HEADLESS:
@@ -48,10 +50,6 @@ class DriverFactory:
             options.add_argument("--disable-dev-shm-usage")
             options.add_argument("--disable-gpu")
             options.add_argument("--disable-extensions")
-            
-            # Fix for profile lock issues - allow multiple instances
-            options.add_argument("--disable-features=ProcessPerSiteUpToMainFrameThreshold")
-            options.add_argument("--disable-site-isolation-trials")
             
             # Enable verbose logging
             service = Service(log_output="chromedriver.log", service_args=["--verbose"])

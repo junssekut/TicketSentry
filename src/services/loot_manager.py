@@ -37,5 +37,4 @@ class LootManager:
             # We might want to log this or re-raise depending on severity
             print(f"[!] Failed to save link: {e}")
             SentryService.capture_exception(e)
-            return FalseFailed to save link: {e}")
             return False

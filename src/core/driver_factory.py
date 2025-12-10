@@ -42,16 +42,6 @@ class DriverFactory:
                 # Keep browser open after script finishes/crashes (only useful in visible mode)
                 options.add_experimental_option("detach", True)
             
-            # Keep browser open after script finishes/crashes
-            # options.add_experimental_option("detach", True)
-            
-            # Additional stability optionsetting_values.media_stream_camera": 2,
-                "profile.default_content_setting_values.notifications": 2
-            })
-            
-            # Keep browser open after script finishes/crashes
-            options.add_experimental_option("detach", True)
-            
             # Additional stability options
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")

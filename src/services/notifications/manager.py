@@ -29,4 +29,3 @@ class NotificationManager:
             except Exception as e:
                 print(f"[!] Notification failed for {channel.__class__.__name__}: {e}")
                 SentryService.capture_exception(e)
-                print(f"[!] Notification failed for {channel.__class__.__name__}: {e}")

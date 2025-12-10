@@ -125,7 +125,6 @@ class SatMiner:
             except Exception as e:
                 # Stale element reference or other minor DOM issue
                 SentryService.capture_exception(e)
-                continueelement reference or other minor DOM issue
                 continue
 
     def _is_target_link(self, url: str) -> bool:
@@ -138,12 +137,11 @@ class SatMiner:
         
         # Save to file
         if self.loot_manager.save_link(url):
-        # Report to Sentry
-        SentryService.capture_message(f"Link Found: {url}", level="info")
-        
-        # Notify User (GUI, etc.)
-        self.notifier.notify_all(url)
-        
-        self.seen_links.add(url)ssage(f"Link Found: {url}", level="info")
-        
-        self.seen_links.add(url)
+            # Report to Sentry
+            SentryService.capture_message(f"Link Found: {url}", level="info")
+            
+            # Notify User (GUI, etc.)
+            self.notifier.notify_all(url)
+            
+            self.seen_links.add(url)
+            self.seen_links.add(url)

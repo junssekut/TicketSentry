@@ -95,6 +95,7 @@ def _launch_gui_process(url: str):
 class GuiNotification(NotificationStrategy):
     """
     Spawns a visual alert window on top of other applications.
+    """
     def send(self, message: str, **kwargs):
         try:
             p = multiprocessing.Process(target=_launch_gui_process, args=(message,))

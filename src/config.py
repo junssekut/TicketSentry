@@ -1,5 +1,5 @@
 """
-Configuration management for SAT-Miner.
+Configuration management for TicketSentry.
 """
 import os
 from dataclasses import dataclass, field

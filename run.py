@@ -1,18 +1,18 @@
 import click
 import multiprocessing
-from src.core.miner import SatMiner
+from src.core.miner import TicketSentry
 from src.services.sentry_service import SentryService
 from src.version import __version__
 
 """
-Entry point for the SAT-Miner application.
+Entry point for the TicketSentry application.
 """
 @click.command()
 @click.argument("url")
 @click.version_option(__version__)
 def main(url):
     """
-    SAT-Miner: Zoom Link Aggregator
+    TicketSentry: Zoom Link Aggregator
     
     Automated Zoom meeting link aggregator.
     
@@ -22,10 +22,10 @@ def main(url):
     # Initialize services
     SentryService.initialize()
     
-    print(f"[*] SAT-Miner v{__version__}")
+    print(f"[*] TicketSentry v{__version__}")
     
     # Start Miner
-    miner = SatMiner(url)
+    miner = TicketSentry(url)
     miner.start()
 
 if __name__ == "__main__":

@@ -31,7 +31,7 @@ def _launch_pyqt_gui(url: str):
     
     # Create Main Window
     window = QWidget()
-    window.setWindowTitle("SAT-Miner: Link Detected")
+    window.setWindowTitle("TicketSentry: Link Detected")
     window.setFixedSize(500, 220)
     
     # Always on Top & Focus
@@ -125,9 +125,9 @@ def _launch_plyer_notification(url: str):
     """
     try:
         notification.notify(
-            title='SAT-Miner: Link Detected',
+            title='TicketSentry: Link Detected',
             message=f'Found: {url}',
-            app_name='SAT-Miner',
+            app_name='TicketSentry',
             timeout=10
         )
     except Exception as e:

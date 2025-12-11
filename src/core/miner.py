@@ -1,5 +1,5 @@
 """
-Core logic for the SAT-Miner Client.
+Core logic for the TicketSentry Client.
 """
 import time
 from datetime import datetime
@@ -18,7 +18,7 @@ from src.services.notifications.manager import NotificationManager
 from src.utils.url_transformer import UrlTransformer
 
 
-class SatMiner:
+class TicketSentry:
     """
     Main client class that orchestrates the link aggregation process.
     """
@@ -104,7 +104,7 @@ class SatMiner:
 
     def start(self):
         """Start the mining process."""
-        print(f"[*] Initializing SAT-Miner for: {self.target_url}")
+        print(f"[*] Initializing TicketSentry for: {self.target_url}")
         
         try:
             self.driver = DriverFactory.create_driver()

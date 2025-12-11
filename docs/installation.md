@@ -34,4 +34,4 @@ Run the following command to verify installation:
 ```bash
 python run.py --help
 ```
-You should see the help message for the SAT-Miner tool.
+You should see the help message for the TicketSentry tool.

@@ -24,7 +24,7 @@ If applicable, add screenshots to help explain your problem.
  - OS: [e.g. macOS, Windows]
  - Python Version: [e.g. 3.9]
  - Chrome Version: [e.g. 120.0]
- - SAT-Miner Version: [e.g. 0.1.0]
+ - TicketSentry Version: [e.g. 0.1.0]
 
 **Additional context**
 Add any other context about the problem here.

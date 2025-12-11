@@ -1,0 +1,8 @@
+selenium>=4.15.0
+sentry-sdk>=1.39.0
+click>=8.1.7
+fake-useragent>=1.4.0
+python-dotenv>=1.0.0
+PyQt6>=6.6.0
+plyer>=2.1.0
+requests>=2.31.0

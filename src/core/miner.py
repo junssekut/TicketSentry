@@ -264,56 +264,92 @@ class SatMiner:
             # Wait for the preview/settings page to load
             time.sleep(3)
             
-            # === MUTE MICROPHONE ===
-            print("[*] Ensuring microphone is muted...")
-            mic_mute_selectors = [
-                "//button[contains(@aria-label, 'mute') and contains(@aria-label, 'microphone')]",
-                "//button[contains(@aria-label, 'Mute')]",
-                "//button[contains(@class, 'mute-audio')]",
-                "//*[contains(@data-testid, 'mute')]",
-                "//button[contains(@title, 'Mute')]",
+            # === CONTINUE WITHOUT AUDIO (preferred method) ===
+            print("[*] Looking for 'Continue without Audio' option...")
+            continue_no_audio_selectors = [
+                "//button[contains(text(), 'Continue without Audio')]",
+                "//button[contains(text(), 'continue without audio')]",
+                "//*[contains(text(), 'Continue without Audio')]//ancestor::button",
+                "//button[contains(@aria-label, 'Continue without Audio')]",
             ]
             
-            for selector in mic_mute_selectors:
-                if self._element_exists(By.XPATH, selector, timeout=2):
-                    try:
-                        btn = self.driver.find_element(By.XPATH, selector)
-                        aria_label = btn.get_attribute("aria-label") or ""
-                        if "unmute" not in aria_label.lower():
-                            btn.click()
-                            print("[✓] Microphone muted")
-                        else:
-                            print("[✓] Microphone already muted")
+            audio_handled = False
+            for selector in continue_no_audio_selectors:
+                if self._element_exists(By.XPATH, selector, timeout=3):
+                    if self._wait_and_click(By.XPATH, selector, timeout=5, description="Continue without Audio"):
+                        print("[✓] Clicked 'Continue without Audio'")
+                        audio_handled = True
                         break
-                    except:
-                        pass
             
-            # === HIDE VIDEO ===
-            print("[*] Ensuring video is off...")
-            video_off_selectors = [
-                "//button[contains(@aria-label, 'stop') and contains(@aria-label, 'video')]",
-                "//button[contains(@aria-label, 'Stop Video')]",
-                "//button[contains(@class, 'stop-video')]",
-                "//*[contains(@data-testid, 'video-off')]",
-                "//button[contains(@title, 'Stop Video')]",
+            # Fallback: Try to mute microphone if Continue without Audio not found
+            if not audio_handled:
+                print("[*] Trying to mute microphone...")
+                mic_mute_selectors = [
+                    "//button[contains(@aria-label, 'mute') and contains(@aria-label, 'microphone')]",
+                    "//button[contains(@aria-label, 'Mute')]",
+                    "//button[contains(@class, 'mute-audio')]",
+                    "//*[contains(@data-testid, 'mute')]",
+                    "//button[contains(@title, 'Mute')]",
+                ]
+                
+                for selector in mic_mute_selectors:
+                    if self._element_exists(By.XPATH, selector, timeout=2):
+                        try:
+                            btn = self.driver.find_element(By.XPATH, selector)
+                            aria_label = btn.get_attribute("aria-label") or ""
+                            if "unmute" not in aria_label.lower():
+                                btn.click()
+                                print("[✓] Microphone muted")
+                            else:
+                                print("[✓] Microphone already muted")
+                            break
+                        except:
+                            pass
+            
+            # === CONTINUE WITHOUT VIDEO (preferred method) ===
+            print("[*] Looking for 'Continue without Video' option...")
+            continue_no_video_selectors = [
+                "//button[contains(text(), 'Continue without Video')]",
+                "//button[contains(text(), 'continue without video')]",
+                "//*[contains(text(), 'Continue without Video')]//ancestor::button",
+                "//button[contains(@aria-label, 'Continue without Video')]",
             ]
             
-            for selector in video_off_selectors:
-                if self._element_exists(By.XPATH, selector, timeout=2):
-                    try:
-                        btn = self.driver.find_element(By.XPATH, selector)
-                        aria_label = btn.get_attribute("aria-label") or ""
-                        if "start" not in aria_label.lower():
-                            btn.click()
-                            print("[✓] Video turned off")
-                        else:
-                            print("[✓] Video already off")
+            video_handled = False
+            for selector in continue_no_video_selectors:
+                if self._element_exists(By.XPATH, selector, timeout=3):
+                    if self._wait_and_click(By.XPATH, selector, timeout=5, description="Continue without Video"):
+                        print("[✓] Clicked 'Continue without Video'")
+                        video_handled = True
                         break
-                    except:
-                        pass
+            
+            # Fallback: Try to turn off video if Continue without Video not found
+            if not video_handled:
+                print("[*] Trying to turn off video...")
+                video_off_selectors = [
+                    "//button[contains(@aria-label, 'stop') and contains(@aria-label, 'video')]",
+                    "//button[contains(@aria-label, 'Stop Video')]",
+                    "//button[contains(@class, 'stop-video')]",
+                    "//*[contains(@data-testid, 'video-off')]",
+                    "//button[contains(@title, 'Stop Video')]",
+                ]
+                
+                for selector in video_off_selectors:
+                    if self._element_exists(By.XPATH, selector, timeout=2):
+                        try:
+                            btn = self.driver.find_element(By.XPATH, selector)
+                            aria_label = btn.get_attribute("aria-label") or ""
+                            if "start" not in aria_label.lower():
+                                btn.click()
+                                print("[✓] Video turned off")
+                            else:
+                                print("[✓] Video already off")
+                            break
+                        except:
+                            pass
 
-            # === USE COMPUTER AUDIO ===
-            print("[*] Selecting computer audio...")
+            # === USE COMPUTER AUDIO (if audio modal appears) ===
+            print("[*] Checking for computer audio option...")
             computer_audio_selectors = [
                 "//button[contains(text(), 'Join Audio by Computer')]",
                 "//button[contains(text(), 'Computer Audio')]",
@@ -405,13 +441,38 @@ class SatMiner:
             print(f"[!] Could not verify mic/video status: {e}")
 
     def _open_chat_panel(self):
-        """Open the chat panel via the More/three dots menu."""
+        """Open the chat panel - try footer button first, then More menu."""
         print("[*] Opening chat panel...")
         
         # First, ensure mic and video are off
         self._ensure_mic_video_off()
         
-        # Try to find and click the "More" (three dots) button first
+        # === METHOD 1: Try direct Chat button in footer (app.zoom.us / larger screens) ===
+        print("[*] Looking for Chat button in footer...")
+        footer_chat_selectors = [
+            # Direct footer chat button (app.zoom.us style)
+            "//button[contains(@aria-label, 'open the chat panel')]",
+            "//button[contains(@aria-label, 'Open the chat panel')]",
+            "//button[contains(@class, 'footer-button')]//span[contains(text(), 'Chat')]/ancestor::button",
+            "//button[contains(@class, 'footer-button-base__button') and contains(@aria-label, 'chat')]",
+            # Generic footer chat buttons
+            "//footer//button[contains(@aria-label, 'Chat')]",
+            "//footer//button[contains(@aria-label, 'chat')]",
+            "//*[contains(@class, 'footer')]//button[contains(@aria-label, 'chat')]",
+            "//*[contains(@class, 'footer')]//button[contains(@aria-label, 'Chat')]",
+            # Button with Chat label
+            "//button[.//span[contains(@class, 'footer-button-base__button-label') and contains(text(), 'Chat')]]",
+        ]
+        
+        for selector in footer_chat_selectors:
+            if self._element_exists(By.XPATH, selector, timeout=3):
+                if self._wait_and_click(By.XPATH, selector, timeout=5, description="Chat (footer)"):
+                    print("[✓] Chat panel opened via footer button")
+                    time.sleep(2)
+                    return
+        
+        # === METHOD 2: Try More menu (three dots) then Chat ===
+        print("[*] Chat not in footer, trying More menu...")
         more_selectors = [
             "//button[contains(@aria-label, 'More')]",
             "//button[contains(@aria-label, 'more')]",
@@ -419,42 +480,55 @@ class SatMiner:
             "//*[contains(@class, 'more-button')]",
             "//button[contains(@class, 'ellipsis')]",
             "//*[contains(@data-testid, 'more')]",
+            "//footer//button[contains(@aria-label, 'More')]",
         ]
         
+        more_clicked = False
         for selector in more_selectors:
-            if self._element_exists(By.XPATH, selector, timeout=5):
-                if self._wait_and_click(By.XPATH, selector, timeout=10, description="More menu"):
+            if self._element_exists(By.XPATH, selector, timeout=3):
+                if self._wait_and_click(By.XPATH, selector, timeout=5, description="More menu"):
+                    more_clicked = True
                     time.sleep(1)
                     break
         
-        # Now find and click Chat option
-        chat_selectors = [
+        if more_clicked:
+            # Now find and click Chat option in the dropdown
+            chat_menu_selectors = [
+                "//button[contains(@aria-label, 'Chat')]",
+                "//button[contains(text(), 'Chat')]",
+                "//*[contains(@aria-label, 'chat')]",
+                "//li[contains(text(), 'Chat')]",
+                "//*[contains(@data-testid, 'chat')]",
+                "//span[contains(text(), 'Chat')]//ancestor::button",
+                "//div[contains(text(), 'Chat')]",
+                "//a[contains(text(), 'Chat')]",
+            ]
+            
+            for selector in chat_menu_selectors:
+                if self._element_exists(By.XPATH, selector, timeout=3):
+                    if self._wait_and_click(By.XPATH, selector, timeout=5, description="Chat (menu)"):
+                        print("[✓] Chat panel opened via More menu")
+                        time.sleep(2)
+                        return
+        
+        # === METHOD 3: Generic fallback ===
+        print("[*] Trying generic chat selectors...")
+        generic_chat_selectors = [
             "//button[contains(@aria-label, 'Chat')]",
-            "//button[contains(text(), 'Chat')]",
-            "//*[contains(@aria-label, 'chat')]",
-            "//li[contains(text(), 'Chat')]",
-            "//*[contains(@data-testid, 'chat')]",
-            "//span[contains(text(), 'Chat')]//ancestor::button",
-            "//div[contains(text(), 'Chat')]",
+            "//button[contains(@aria-label, 'chat')]",
+            "//*[@aria-label='Chat']",
+            "//*[@aria-label='chat']",
         ]
         
-        for selector in chat_selectors:
-            if self._wait_and_click(By.XPATH, selector, timeout=10, description="Chat"):
-                print("[✓] Chat panel opened")
-                time.sleep(2)
-                return
+        for selector in generic_chat_selectors:
+            if self._element_exists(By.XPATH, selector, timeout=3):
+                if self._wait_and_click(By.XPATH, selector, timeout=5, description="Chat"):
+                    print("[✓] Chat panel opened")
+                    time.sleep(2)
+                    return
         
-        print("[!] Could not find Chat option - trying alternative methods...")
-        
-        # Alternative: Look in footer/toolbar
-        try:
-            chat_btn = self.driver.find_element(By.XPATH, 
-                "//*[contains(@class, 'footer')]//button[contains(@aria-label, 'chat') or contains(@aria-label, 'Chat')]")
-            chat_btn.click()
-            print("[✓] Chat opened via footer")
-        except:
-            print("[!] Chat button not found - please open chat manually")
-            input("[*] Press Enter after opening chat...")
+        print("[!] Chat button not found - please open chat manually")
+        input("[*] Press Enter after opening chat...")
 
     def _start_listener_loop(self):
         """Main loop that scans for links and logs chat messages."""
@@ -478,107 +552,187 @@ class SatMiner:
     def _scan_chat_messages(self):
         """Scan and log all chat messages from Zoom chat panel."""
         try:
-            # Find chat items using the actual Zoom DOM structure
-            # Each chat message is in a div with class "chat-item"
+            # === LAYOUT 1: Classic chat-item layout (binus.zoom.us) ===
             chat_items = self.driver.find_elements(By.CSS_SELECTOR, "div.chat-item")
             
             for item in chat_items:
-                try:
-                    # Extract timestamp
-                    timestamp = ""
-                    try:
-                        timestamp_el = item.find_element(By.CSS_SELECTOR, ".chat-item-timestamp")
-                        timestamp = timestamp_el.text.strip()
-                    except:
-                        pass
-                    
-                    # Extract sender name (with fallback)
-                    sender = ""
-                    sender_selectors = [
-                        ".chat-item-content__header-sender",
-                        "[class*='header-sender']",
-                        ".chat-item-body [class*='sender']",
-                    ]
-                    for sel in sender_selectors:
-                        try:
-                            sender_el = item.find_element(By.CSS_SELECTOR, sel)
-                            sender = sender_el.text.strip()
-                            if sender:
-                                break
-                        except:
-                            continue
-                    
-                    # Extract receiver (To Everyone, To You, etc.)
-                    receiver = ""
-                    receiver_selectors = [
-                        ".chat-item-content__header-receiver",
-                        "[class*='header-receiver']",
-                        ".chat-item-body [class*='receiver']",
-                    ]
-                    for sel in receiver_selectors:
-                        try:
-                            receiver_el = item.find_element(By.CSS_SELECTOR, sel)
-                            receiver = receiver_el.text.strip()
-                            if receiver:
-                                break
-                        except:
-                            continue
-                    
-                    # Extract actual message text (with multiple fallbacks)
-                    message_text = ""
-                    message_selectors = [
-                        # Try stable selectors first
-                        ".chat-item-content__raw-txt p",
-                        ".chat-item-content__raw-txt div p",
-                        ".chat-item-content__raw p",
-                        "[class*='raw-txt'] p",
-                        "[class*='raw-txt']",
-                        ".chat-item-content__raw-txt",
-                        ".chat-item-content__raw",
-                        # Dynamic class fallback (partial match)
-                        "[class*='rtfEditor'] p",
-                        "[class*='rtfEditor']",
-                    ]
-                    for sel in message_selectors:
-                        try:
-                            message_el = item.find_element(By.CSS_SELECTOR, sel)
-                            message_text = message_el.text.strip()
-                            if message_text:
-                                break
-                        except:
-                            continue
-                    
-                    # Ultimate fallback: use aria-label which contains full message info
-                    if not message_text or not sender:
-                        try:
-                            content_el = item.find_element(By.CSS_SELECTOR, ".chat-item-content")
-                            aria_label = content_el.get_attribute("aria-label")
-                            if aria_label:
-                                # aria-label format: "11:39 AM, SENDER To RECEIVER MESSAGE"
-                                if not message_text:
-                                    # Extract message from aria-label (last part after receiver)
-                                    message_text = aria_label.strip()
-                                if not sender:
-                                    sender = "Unknown"
-                        except:
-                            pass
-                    
-                    # Build a unique key for this message
-                    message_key = f"{timestamp}|{sender}|{message_text}"
-                    
-                    if message_key and message_key not in self.seen_messages and message_text:
-                        self.seen_messages.add(message_key)
-                        
-                        # Format the log entry
-                        formatted_msg = f"[{timestamp}] {sender} -> {receiver}: {message_text}"
-                        self._log_chat_message(formatted_msg)
-                        
-                except StaleElementReferenceException:
-                    continue
-                except Exception as e:
-                    continue
+                self._process_classic_chat_item(item)
+            
+            # === LAYOUT 2: New chat layout (app.zoom.us / new-chat-item) ===
+            new_chat_items = self.driver.find_elements(By.CSS_SELECTOR, "div.new-chat-message__container")
+            
+            for item in new_chat_items:
+                self._process_new_chat_item(item)
                     
         except Exception as e:
+            pass
+
+    def _process_classic_chat_item(self, item):
+        """Process classic chat-item layout messages."""
+        try:
+            # Extract timestamp
+            timestamp = ""
+            try:
+                timestamp_el = item.find_element(By.CSS_SELECTOR, ".chat-item-timestamp")
+                timestamp = timestamp_el.text.strip()
+            except:
+                pass
+            
+            # Extract sender name (with fallback)
+            sender = ""
+            sender_selectors = [
+                ".chat-item-content__header-sender",
+                "[class*='header-sender']",
+                ".chat-item-body [class*='sender']",
+            ]
+            for sel in sender_selectors:
+                try:
+                    sender_el = item.find_element(By.CSS_SELECTOR, sel)
+                    sender = sender_el.text.strip()
+                    if sender:
+                        break
+                except:
+                    continue
+            
+            # Extract receiver (To Everyone, To You, etc.)
+            receiver = ""
+            receiver_selectors = [
+                ".chat-item-content__header-receiver",
+                "[class*='header-receiver']",
+                ".chat-item-body [class*='receiver']",
+            ]
+            for sel in receiver_selectors:
+                try:
+                    receiver_el = item.find_element(By.CSS_SELECTOR, sel)
+                    receiver = receiver_el.text.strip()
+                    if receiver:
+                        break
+                except:
+                    continue
+            
+            # Extract actual message text (with multiple fallbacks)
+            message_text = ""
+            message_selectors = [
+                ".chat-item-content__raw-txt p",
+                ".chat-item-content__raw-txt div p",
+                ".chat-item-content__raw p",
+                "[class*='raw-txt'] p",
+                "[class*='raw-txt']",
+                ".chat-item-content__raw-txt",
+                ".chat-item-content__raw",
+                "[class*='rtfEditor'] p",
+                "[class*='rtfEditor']",
+            ]
+            for sel in message_selectors:
+                try:
+                    message_el = item.find_element(By.CSS_SELECTOR, sel)
+                    message_text = message_el.text.strip()
+                    if message_text:
+                        break
+                except:
+                    continue
+            
+            # Ultimate fallback: use aria-label which contains full message info
+            if not message_text or not sender:
+                try:
+                    content_el = item.find_element(By.CSS_SELECTOR, ".chat-item-content")
+                    aria_label = content_el.get_attribute("aria-label")
+                    if aria_label:
+                        if not message_text:
+                            message_text = aria_label.strip()
+                        if not sender:
+                            sender = "Unknown"
+                except:
+                    pass
+            
+            # Build a unique key for this message
+            message_key = f"{timestamp}|{sender}|{message_text}"
+            
+            if message_key and message_key not in self.seen_messages and message_text:
+                self.seen_messages.add(message_key)
+                formatted_msg = f"[{timestamp}] {sender} -> {receiver}: {message_text}"
+                self._log_chat_message(formatted_msg)
+                
+        except StaleElementReferenceException:
+            pass
+        except Exception:
+            pass
+
+    def _process_new_chat_item(self, item):
+        """Process new-chat-message layout messages (app.zoom.us style)."""
+        try:
+            # The aria-label contains all the info we need
+            # Format: "SENDER to RECEIVER, TIME, MESSAGE"
+            aria_label = item.get_attribute("aria-label")
+            
+            if not aria_label:
+                return
+            
+            # Use aria-label as unique key
+            message_key = aria_label.strip()
+            
+            if message_key in self.seen_messages:
+                return
+            
+            # Parse the aria-label
+            # Example: "2602168425_Tsalasa Kale Syamsu Machdita to Everyone, 12:07 PM, Human? Because human make the prompt..."
+            sender = ""
+            receiver = ""
+            timestamp = ""
+            message_text = ""
+            
+            try:
+                # Try to extract message text from the actual element first
+                text_selectors = [
+                    ".new-chat-message__text-content p",
+                    ".new-chat-message__text-box p",
+                    "[class*='rtfEditor'] p",
+                    ".chat-rtf-box__display p",
+                    ".new-chat-message__text-content",
+                    ".new-chat-message__text-box",
+                ]
+                for sel in text_selectors:
+                    try:
+                        text_el = item.find_element(By.CSS_SELECTOR, sel)
+                        message_text = text_el.text.strip()
+                        if message_text:
+                            break
+                    except:
+                        continue
+            except:
+                pass
+            
+            # Parse aria-label for sender, receiver, timestamp
+            # Format: "SENDER to RECEIVER, TIME, MESSAGE"
+            try:
+                parts = aria_label.split(", ")
+                if len(parts) >= 2:
+                    # First part: "SENDER to RECEIVER"
+                    first_part = parts[0]
+                    if " to " in first_part:
+                        sender_receiver = first_part.split(" to ")
+                        sender = sender_receiver[0].strip()
+                        receiver = sender_receiver[1].strip() if len(sender_receiver) > 1 else "Everyone"
+                    
+                    # Second part: timestamp
+                    timestamp = parts[1].strip()
+                    
+                    # If we didn't get message text from element, use rest of aria-label
+                    if not message_text and len(parts) >= 3:
+                        message_text = ", ".join(parts[2:]).strip()
+            except:
+                # If parsing fails, use the whole aria-label
+                if not message_text:
+                    message_text = aria_label
+            
+            if message_text:
+                self.seen_messages.add(message_key)
+                formatted_msg = f"[{timestamp}] {sender} -> {receiver}: {message_text}"
+                self._log_chat_message(formatted_msg)
+                
+        except StaleElementReferenceException:
+            pass
+        except Exception:
             pass
 
     def _log_chat_message(self, message: str):
@@ -614,10 +768,16 @@ class SatMiner:
 
     def _handle_found_link(self, url: str):
         """Process a newly found target link."""
+        from datetime import datetime
+        
         print(f"\n[💰 FOUND] {url}\n")
         
         # Save to file
         if self.loot_manager.save_link(url):
-            # Notify User (GUI, etc.) - but don't send to Sentry
-            self.notifier.notify_all(url)
+            # Notify all channels (GUI, Discord, Telegram)
+            self.notifier.notify_all(
+                url,
+                timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                source=self.zoom_domain
+            )
             self.seen_links.add(url)

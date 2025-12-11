@@ -24,6 +24,13 @@ class AppConfig:
     # Microsoft Authentication
     MS_EMAIL: str = os.getenv("MS_EMAIL", "")
     MS_PASSWORD: str = os.getenv("MS_PASSWORD", "")
+    
+    # Discord Notifications
+    DISCORD_WEBHOOK_URL: str = os.getenv("DISCORD_WEBHOOK_URL", "")
+    
+    # Telegram Notifications
+    TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    TELEGRAM_CHAT_ID: str = os.getenv("TELEGRAM_CHAT_ID", "")
 
     # Miner Configuration
     POLL_INTERVAL: int = 5

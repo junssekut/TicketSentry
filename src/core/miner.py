@@ -107,31 +107,18 @@ class SatMiner:
         print(f"[*] Initializing SAT-Miner for: {self.target_url}")
         
         try:
-            # Check for existing Chrome instance with the URL
-            existing_driver = self._check_existing_chrome_instance()
+            self.driver = DriverFactory.create_driver()
+            self.is_running = True
             
-            if existing_driver:
-                print("[✓] Found existing Chrome instance with Zoom meeting!")
-                self.driver = existing_driver
-                self.is_running = True
-                # Skip login, go straight to ensuring we're in the meeting
-                self._ensure_in_meeting()
-                self._open_chat_panel()
-                self._start_listener_loop()
-            else:
-                # Fresh start
-                self.driver = DriverFactory.create_driver()
-                self.is_running = True
-                
-                # Full workflow
-                self._navigate_to_zoom_domain()
-                self._handle_microsoft_login()
-                self._navigate_to_meeting()
-                self._handle_audio_video_settings()
-                self._click_join_meeting()
-                self._ensure_in_meeting()
-                self._open_chat_panel()
-                self._start_listener_loop()
+            # Full workflow
+            self._navigate_to_zoom_domain()
+            self._handle_microsoft_login()
+            self._navigate_to_meeting()
+            self._handle_audio_video_settings()
+            self._click_join_meeting()
+            self._ensure_in_meeting()
+            self._open_chat_panel()
+            self._start_listener_loop()
                 
         except KeyboardInterrupt:
             print("\n[*] User interrupted. Exiting...")
@@ -140,42 +127,6 @@ class SatMiner:
             SentryService.capture_exception(e)
         finally:
             print("[*] Client session ended.")
-
-    def _check_existing_chrome_instance(self) -> Optional[webdriver.Chrome]:
-        """
-        Check if there's an existing Chrome instance with the Zoom URL.
-        
-        Returns:
-            WebDriver instance if found, None otherwise
-        """
-        print("[*] Checking for existing Chrome instances...")
-        
-        try:
-            # Try to connect to existing Chrome debugger
-            from selenium.webdriver.chrome.options import Options
-            
-            options = Options()
-            options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-            
-            try:
-                driver = webdriver.Chrome(options=options)
-                current_url = driver.current_url
-                
-                # Check if the current URL matches our Zoom domain
-                if self.zoom_domain in current_url or "zoom.us" in current_url:
-                    print(f"[✓] Found existing Chrome with URL: {current_url}")
-                    return driver
-                else:
-                    print(f"[*] Existing Chrome found but URL doesn't match: {current_url}")
-                    driver.quit()
-                    return None
-            except Exception:
-                print("[*] No existing Chrome debugger found")
-                return None
-                
-        except Exception as e:
-            print(f"[*] Could not connect to existing Chrome: {e}")
-            return None
 
     def _navigate_to_zoom_domain(self):
         """Navigate to Zoom domain first for login."""

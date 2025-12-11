@@ -1,6 +1,6 @@
-# SAT-Miner (TicketSentry)
+# TicketSentry
 
-**SAT-Miner** is a specialized CLI automation tool designed to aggregate specific links from Zoom meeting chats. It leverages Selenium with Microsoft SSO authentication to seamlessly join meetings via the Web Client.
+TicketSentry is a specialized CLI automation tool designed to aggregate specific links from Zoom meeting chats. It leverages Selenium with Microsoft SSO authentication to seamlessly join meetings via the Web Client.
 
 ## 🚀 Features
 

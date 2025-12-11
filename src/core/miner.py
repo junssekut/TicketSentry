@@ -552,7 +552,7 @@ class SatMiner:
     def _scan_chat_messages(self):
         """Scan and log all chat messages from Zoom chat panel."""
         try:
-            # === LAYOUT 1: Classic chat-item layout (binus.zoom.us) ===
+            # === LAYOUT 1: Classic chat-item layout ===
             chat_items = self.driver.find_elements(By.CSS_SELECTOR, "div.chat-item")
             
             for item in chat_items:

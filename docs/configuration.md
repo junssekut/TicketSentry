@@ -94,7 +94,7 @@ You can configure both Discord and Telegram - all enabled channels will receive 
 🎫 TicketSentry Alert!
 🔗 Link Found: https://forms.office.com/r/abc123
 ⏰ Time: 2025-12-11 12:55:14
-📍 Source: binus.zoom.us
+📍 Source: customdomain.zoom.us
 ```
 
 **Telegram:**
@@ -104,7 +104,7 @@ You can configure both Discord and Telegram - all enabled channels will receive 
 🔗 Link Found
 https://forms.office.com/r/abc123
 ⏰ 2025-12-11 12:55:14
-📍 binus.zoom.us
+📍 customdomain.zoom.us
 ━━━━━━━━━━━━━━━━━━━
 ```
 

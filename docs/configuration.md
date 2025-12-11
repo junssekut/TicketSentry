@@ -54,3 +54,57 @@ You can also tune:
 *   `PAGE_LOAD_DELAY_MIN` / `MAX`: Random delay range for page loads.
 *   `HEADLESS`: Set to `true` to run browser in background (default: `false`).
 
+## Push Notifications (Optional)
+
+Get instant alerts on your phone when attendance links are detected!
+
+### Discord Webhook
+
+1. Go to your Discord server → **Settings** → **Integrations** → **Webhooks**
+2. Click **New Webhook** and configure it
+3. Click **Copy Webhook URL**
+4. Add to your `.env`:
+   ```env
+   DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/123456789/abcdef...
+   ```
+
+### Telegram Bot
+
+1. Message [@BotFather](https://t.me/BotFather) on Telegram
+2. Send `/newbot` and follow the prompts
+3. Copy the **bot token** (looks like `123456789:ABCdefGHI...`)
+4. Start a chat with your new bot (send any message)
+5. Get your **chat ID**:
+   - Visit: `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates`
+   - Find `"chat":{"id":123456789}` in the response
+6. Add to your `.env`:
+   ```env
+   TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklMNO...
+   TELEGRAM_CHAT_ID=123456789
+   ```
+
+### Using Both
+
+You can configure both Discord and Telegram - all enabled channels will receive notifications when a link is found.
+
+### Notification Preview
+
+**Discord:**
+```
+🎫 TicketSentry Alert!
+🔗 Link Found: https://forms.office.com/r/abc123
+⏰ Time: 2025-12-11 12:55:14
+📍 Source: binus.zoom.us
+```
+
+**Telegram:**
+```
+🎫 TicketSentry Alert!
+━━━━━━━━━━━━━━━━━━━
+🔗 Link Found
+https://forms.office.com/r/abc123
+⏰ 2025-12-11 12:55:14
+📍 binus.zoom.us
+━━━━━━━━━━━━━━━━━━━
+```
+

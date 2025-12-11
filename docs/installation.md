@@ -4,7 +4,7 @@
 
 *   **Python 3.9+**: Ensure Python is installed and added to your PATH.
 *   **Google Chrome**: The browser must be installed.
-*   **Chrome User Profile**: You should have a Chrome profile logged into Zoom (SSO/Google) to bypass authentication steps.
+*   **Microsoft Account**: Your Microsoft/Office365 credentials for SSO login.
 
 ## Setup Steps
 
